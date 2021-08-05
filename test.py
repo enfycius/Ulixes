@@ -1,5 +1,7 @@
-from tkinter import *
+from PIL import Image
 
-root = Tk()
-root.mainloop()
+Img = Image.open("/Users/hexk0131/Downloads/unsamples-2/OwVOoS8Dmv0.jpg")
 
+rotated = Img.rotate(45)
+
+rotated.show()
