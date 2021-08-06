@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from PIL import Image
 import tkinter.filedialog as fd
 import os
@@ -44,6 +45,7 @@ class RotationWindow(Toplevel):
 class SaveWindow(Toplevel):
     def __init__(self, master = None, Img = None):
         super().__init__(master = master)
+        
         self.Img = Img
 
         self.title("Export")
@@ -74,6 +76,8 @@ class MainWindow(threading.Thread):
         root.title("Image Macro")
         root.bind("<KeyRelease>", self.key)
         
+        self.rotation = None
+
         self.lb = Listbox(root, selectmode="multiple", height=10)
         self.lb.grid(columnspan=5, row=3, ipady=100, padx=5, pady=5, sticky=W+N+E+S)
 
@@ -83,10 +87,11 @@ class MainWindow(threading.Thread):
         ttk.Button(root, text="Export", width=30, command=self.save).grid(column=3, row=1, padx=5, pady=5, sticky=W)
        
     def key(self, event):
-        self.rotation = None
-        
         if event.keysym=='r':
-            self.rotation = RotationWindow(root, self.lb)
+            if(len(self.lb.curselection())):
+                self.rotation = RotationWindow(root, self.lb)
+            else:
+                messagebox.showinfo("Info", "No Selected Data")
 
     def openDialog(self):
         self.filez = fd.askopenfilename(title="Choose a file", multiple=True, filetypes={
@@ -102,8 +107,11 @@ class MainWindow(threading.Thread):
     def save(self):
         if(not os.path.isdir("./export")):
             os.mkdir("./export")
-        
-        SaveWindow(root, self.rotation.Img)
+
+        if(self.rotation == None):
+            messagebox.showinfo("Info", "No Export Data")
+        else:  
+            SaveWindow(root, self.rotation.Img)
         
 if __name__ == "__main__":
     root = Tk()
