@@ -57,38 +57,53 @@ class NamingWindow(Toplevel):
     
         ttk.Label(self.mainframe, text="Start Name: ").grid(column=1, row=1, sticky=W)
         self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
-        self.progress.grid(column=5, row=2, sticky=W)
+        self.progress.grid(column=5, row=3, sticky=W)
         self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=200, mode="determinate")
-        self.pgb.grid(columnspan=4, row=2, padx=3, pady=3, sticky=N+S+E+W)
+        self.pgb.grid(columnspan=4, row=3, padx=3, pady=3, sticky=N+S+E+W)
         
         self.name = ttk.Entry(self.mainframe)
         self.name.grid(column=2, row=1, sticky=W)
 
+        self.var1 = IntVar()
+
         ttk.Button(self.mainframe, text="Apply", command=self.selected_item).grid(column=3, row=1, sticky=W)
-    
+        ttk.Checkbutton(self.mainframe, text="Labeled", variable=self.var1, onvalue=1, offvalue=0).grid(column=3, row=2, padx=3, sticky=W)
+
     def execute(self):
         j_f = False
-        
+        l_f = False
+
         if(not self.name is None):
             j = self.name.get()
             cur_len = len(self.lb.curselection())
             
+            if(self.var1.get() == 1):
+                l_f = True
+            
             if(j[0] == '0'):
                 j_f = True
                 j = int(j)
-        
+    
             for i in self.lb.curselection():
                 dir_path, file_name = os.path.split(self.lb.get(i))
                 file_path, file_extension = os.path.splitext(file_name)
-                
+            
                 self.lb.delete(i)
 
                 if(j_f == True):
-                    os.rename(dir_path+'/'+file_name, dir_path+'/'+'0'+str(j)+file_extension)
-                    self.lb.insert(i, dir_path+'/'+'0'+str(j)+file_extension)
+                    if(l_f == True):
+                        os.rename(dir_path+'/'+file_name, dir_path+'/'+'Label_0'+str(j)+file_extension)
+                        self.lb.insert(i, dir_path+'/'+'Label_0'+str(j)+file_extension)
+                    else:
+                        os.rename(dir_path+'/'+file_name, dir_path+'/'+'0'+str(j)+file_extension)
+                        self.lb.insert(i, dir_path+'/'+'0'+str(j)+file_extension)
                 else:
-                    os.rename(dir_path+'/'+file_name, dir_path+'/'+str(j)+file_extension)
-                    self.lb.insert(i, dir_path+'/'+str(j)+file_extension)
+                    if(l_f == True):
+                        os.rename(dir_path+'/'+file_name, dir_path+'/'+'Label_'+str(j)+file_extension)
+                        self.lb.insert(i, dir_path+'/'+'Label_'+str(j)+file_extension)
+                    else:
+                        os.rename(dir_path+'/'+file_name, dir_path+'/'+str(j)+file_extension)
+                        self.lb.insert(i, dir_path+'/'+str(j)+file_extension)
 
                 self.pgb['value'] += (100 / cur_len)
                 self.progress_var.set(str(round(self.pgb['value'])) + "%")
