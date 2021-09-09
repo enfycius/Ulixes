@@ -13,7 +13,7 @@ import cv2
 
 matplotlib.use("TkAgg") # set the backends
 
-class RotationWindow(Toplevel):
+class SpecificRotationWindow(Toplevel):
     def __init__(self, master = None, lb = None):
         super().__init__(master = master)
         self.lb = lb
@@ -26,7 +26,8 @@ class RotationWindow(Toplevel):
         self.mainframe.columnconfigure(0, weight=1)
         self.mainframe.rowconfigure(0, weight=1)
     
-        ttk.Label(self.mainframe, text="Set angle:").grid(column=1, row=1, sticky=W)
+        self.set_angle_label = ttk.Label(self.mainframe, text="Set angle:")
+        self.set_angle_label.grid(column=1, row=1, sticky=W)
         self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
         self.progress.grid(column=5, row=2, sticky=W)
         self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=200, mode="determinate")
@@ -48,6 +49,125 @@ class RotationWindow(Toplevel):
 
         apply_thread = threading.Thread(target=self.execute)
         apply_thread.start()
+
+class RotationWindow(Toplevel):
+    def __init__(self, master = None, lb = None):
+        super().__init__(master = master)
+        self.master = master
+        self.lb = lb
+        self.title("Rotation Selection")
+
+        self.mainframe = ttk.Frame(self, padding="3 3 12 12")
+        self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
+    
+        ttk.Button(self.mainframe, text="Specific Rotation", command=self.specific_rotation).grid(column=3, row=1, sticky=W)
+        ttk.Button(self.mainframe, text="Rough Rotation", command=self.rough_rotation).grid(column=1, row=1, sticky=W)
+    
+    def specific_rotation(self):
+        self.Img = SpecificRotationWindow(self.master, self.lb)
+
+    def rough_rotation(self):
+        RoughRotationWindow(self.master, self.lb)
+
+class RoughRotationWindow(Toplevel):
+    def __init__(self, master = None, lb = None):
+        super().__init__(master = master)
+        self.lb = lb
+        self.title("Rotation")
+        self.progress_var = StringVar()
+        self.progress_var.set("0%")
+
+        self.mainframe = ttk.Frame(self, padding="3 3 12 12")
+        self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
+    
+        # ttk.Label(self.mainframe, text="angle: ").grid(column=2, row=1, sticky=W)
+        # self.angle_label = ttk.Label(self.mainframe, text="0")
+        # self.angle_label.grid(column=3, row=1, sticky=W)
+        self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
+        self.progress.grid(column=5, row=2, sticky=W)
+        self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=100, mode="determinate")
+        self.pgb.grid(columnspan=4, row=2, padx=3, pady=3, sticky=N+S+E+W)
+
+        # ttk.Button(self.mainframe, text="Apply", command=self.set_rotation).grid(columnspan=5, row=4, sticky=N+S+E+W)
+        ttk.Button(self.mainframe, text="+90", command=self.right_rotation).grid(column=1, row=1, sticky=W)
+        ttk.Button(self.mainframe, text="180", command=self.one_rotation).grid(column=2, row=1, sticky=W)
+        ttk.Button(self.mainframe, text="-90", command=self.left_rotation).grid(column=3, row=1, sticky=W)
+    
+    def right_execute(self):
+        for i in self.lb.curselection():
+            # self.Img.append(Image.open(self.lb.get(i)).rotate(float(Entry.get(self.angle))))
+            dir_path, file_name = os.path.split(self.lb.get(i))
+
+            if(not os.path.isdir("./export")):
+                os.mkdir("./export")
+
+            cv2.imwrite('./export/' + file_name, cv2.rotate(cv2.imread(self.lb.get(i)), cv2.ROTATE_90_CLOCKWISE))
+            self.pgb['value'] += (100 / len(self.lb.curselection()))
+            self.progress_var.set(str(round(self.pgb['value'])) + "%")
+
+    def one_execute(self):
+        for i in self.lb.curselection():
+            dir_path, file_name = os.path.split(self.lb.get(i))
+
+            if(not os.path.isdir("./export")):
+                os.mkdir("./export")
+
+            cv2.imwrite('./export/' + file_name, cv2.rotate(cv2.imread(self.lb.get(i)), cv2.ROTATE_180))
+            self.pgb['value'] += (100 / len(self.lb.curselection()))
+            self.progress_var.set(str(round(self.pgb['value'])) + "%")
+
+    def left_execute(self):
+        for i in self.lb.curselection():
+            dir_path, file_name = os.path.split(self.lb.get(i))
+
+            if(not os.path.isdir("./export")):
+                os.mkdir("./export")
+
+            cv2.imwrite('./export/' + file_name, cv2.rotate(cv2.imread(self.lb.get(i)), cv2.ROTATE_90_COUNTERCLOCKWISE))
+            self.pgb['value'] += (100 / len(self.lb.curselection()))
+            self.progress_var.set(str(round(self.pgb['value'])) + "%")
+
+    # def plus(self):
+    #     angle = int(self.angle_label['text'])
+    #     angle = angle + 90
+    #     self.angle_label.configure(text = str(angle))
+        
+    # def minus(self):
+    #     angle = int(self.angle_label['text'])
+    #     angle = angle - 90
+    #     self.angle_label.configure(text = str(angle))
+
+    def right_rotation(self):
+        if(self.pgb['value'] != 0):
+            self.pgb['value'] = 0
+            self.progress_var.set('0%')
+
+
+        apply_thread = threading.Thread(target=self.right_execute)
+        apply_thread.start()
+    
+    def one_rotation(self):
+        if(self.pgb['value'] != 0):
+            self.pgb['value'] = 0
+            self.progress_var.set('0%')
+
+        apply_thread = threading.Thread(target=self.one_execute)
+        apply_thread.start()
+    
+    def left_rotation(self):
+        if(self.pgb['value'] != 0):
+            self.pgb['value'] = 0
+            self.progress_var.set('0%')
+
+        apply_thread = threading.Thread(target=self.left_execute)
+        apply_thread.start()
+
+    # def set_zero(self):
+    #     self.angle_label.configure(text="0")
 
 class NamingWindow(Toplevel):
     def __init__(self, master = None, lb = None):
