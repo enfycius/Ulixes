@@ -169,6 +169,72 @@ class RoughRotationWindow(Toplevel):
     # def set_zero(self):
     #     self.angle_label.configure(text="0")
 
+class CropWindow(Toplevel):
+    def __init__(self, master = None, lb = None):
+        super().__init__(master = master)
+        self.lb = lb
+        self.title("Crop")
+        self.progress_var = StringVar()
+        self.progress_var.set("0%")
+
+        self.get_start_width = StringVar()
+        self.get_start_height = StringVar()
+        self.get_end_width = StringVar()
+        self.get_end_height = StringVar()
+
+        self.mainframe = ttk.Frame(self, padding="3 3 12 12")
+        self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
+
+        # ttk.Label(self.mainframe, text="Start Width: ").grid(column=1, row=1, sticky=W)
+        # ttk.Label(self.mainframe, text="").grid(column=1, row=1, sticky=W)
+        # ttk.Label(self.mainframe, text="Start Height: ").grid(column=3, row=1, sticky=W)
+        # ttk.Label(self.mainframe, text="").grid(column=1, row=1, sticky=W)
+        # ttk.Label(self.mainframe, text="End Width: ").grid(column=1, row=2, sticky=W)
+        # ttk.Label(self.mainframe, text="").grid(column=1, row=1, sticky=W)
+        # ttk.Label(self.mainframe, text="End Height: ").grid(column=3, row=2, sticky=W)
+        # ttk.Label(self.mainframe, text="").grid(column=1, row=1, sticky=W)
+    
+        ttk.Label(self.mainframe, text="Start Width: ").grid(column=1, row=1, sticky=W)
+        ttk.Label(self.mainframe, text="Start Height: ").grid(column=3, row=1, sticky=W)
+        ttk.Label(self.mainframe, text="End Width: ").grid(column=1, row=2, sticky=W)
+        ttk.Label(self.mainframe, text="End Height: ").grid(column=3, row=2, sticky=W)
+
+        self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
+        self.progress.grid(column=5, row=3, sticky=W)
+        self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=200, mode="determinate")
+        self.pgb.grid(columnspan=5, row=3, padx=3, pady=3, sticky=N+S+E+W)
+        
+        ttk.Entry(self.mainframe, textvariable=self.get_start_width).grid(column=2, row=1, sticky=W)
+        ttk.Entry(self.mainframe, textvariable=self.get_start_height).grid(column=4, row=1, sticky=W)
+        ttk.Entry(self.mainframe, textvariable=self.get_end_width).grid(column=2, row=2, sticky=W)
+        ttk.Entry(self.mainframe, textvariable=self.get_end_height).grid(column=4, row=2, sticky=W)
+
+        ttk.Button(self.mainframe, text="Apply", command=self.crop_image).grid(columnspan=5, row=4, sticky=N+S+E+W)
+    
+    def execute(self):
+        for i in self.lb.curselection():
+            dir_path, file_name = os.path.split(self.lb.get(i))
+            img = cv2.imread(self.lb.get(i))
+            # croped_img = img.crop((int(self.get_start_width.get()), int(self.get_start_height.get()), int(self.get_end_width.get()), int(self.get_end_height.get())))
+            # resized_img = croped_img.resize((int(self.get_end_width.get()) - int(self.get_start_width.get()), int(self.get_end_height.get()) - int(self.get_start_height.get())))
+            crop_img = img[int(self.get_start_height.get()):int(self.get_end_height.get()), int(self.get_start_width.get()):int(self.get_end_width.get())]
+            cv2.imwrite("./export/" + file_name, crop_img)
+            self.pgb['value'] += (100 / len(self.lb.curselection()))
+            self.progress_var.set(str(round(self.pgb['value'])) + "%")
+
+    def crop_image(self):
+        if(self.pgb['value'] != 0):
+            self.pgb['value'] = 0
+            self.progress_var.set('0%')
+
+        if(self.get_start_width.get() == '' or self.get_start_height.get() == '' or self.get_end_width.get() == '' or self.get_end_height.get() == ''):
+            messagebox.showinfo("Info", "No Input Data")
+        else:
+            apply_thread = threading.Thread(target=self.execute)
+            apply_thread.start()
+
 class NamingWindow(Toplevel):
     def __init__(self, master = None, lb = None):
         super().__init__(master = master)
@@ -386,6 +452,10 @@ class MainWindow(threading.Thread):
                     self.lb.delete(i)
             else:
                 messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='o':
+            if(len(self.lb.curselection())):
+                CropWindow(root, self.lb)
 
         if event.keysym=='c':
             if(len(self.lb.curselection())):
