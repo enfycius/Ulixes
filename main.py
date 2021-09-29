@@ -275,7 +275,8 @@ class NamingWindow(Toplevel):
             
             if(j[0] == '0'):
                 j_f = True
-                j = int(j)
+            
+            j = int(j)
     
             for i in self.lb.curselection():
                 dir_path, file_name = os.path.split(self.lb.get(i))
@@ -432,6 +433,15 @@ class MainWindow(threading.Thread):
         ttk.Button(root, text="Import", width=30, command=self.openDialog).grid(column=1, row=1, padx=5, pady=5, sticky=W)
         ttk.Button(root, text="Export", width=30, command=self.save).grid(column=3, row=1, padx=5, pady=5, sticky=W)
        
+    def execute(self):
+        for i in self.lb.curselection():
+            dir_path, file_name = os.path.split(self.lb.get(i))
+
+            src = cv2.imread(self.lb.get(i), 0)
+            ret,th1 = cv2.threshold(src,0.1,1,cv2.THRESH_BINARY)
+                        
+            cv2.imwrite('./export/label/' + file_name, th1)
+
     def key(self, event):
         if event.keysym=='r':
             if(len(self.lb.curselection())):
@@ -450,6 +460,18 @@ class MainWindow(threading.Thread):
                 sel = self.lb.curselection()
                 for i in sel[::-1]:
                     self.lb.delete(i)
+            else:
+                messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='t':
+            if(len(self.lb.curselection())):
+                if(not os.path.isdir("./export/")):
+                    os.mkdir("./export/")
+
+                if(not os.path.isdir("./export/label/")):
+                    os.mkdir("./export/label/")
+                apply_thread = threading.Thread(target=self.execute)
+                apply_thread.start()            
             else:
                 messagebox.showinfo("Info", "No Selected Data")
 
