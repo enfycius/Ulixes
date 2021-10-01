@@ -356,6 +356,54 @@ class PreviewWindow(Toplevel):
             self.i = -1
             self.next()
 
+class LabelingWindow(Toplevel):
+    def __init__(self, master = None, lb = None):
+        super().__init__(master = master)
+        self.lb = lb
+        self.title("Image Labeling")
+        self.progress_var = StringVar()
+        self.progress_var.set("0%")
+
+        self.mainframe = ttk.Frame(self, padding="3 3 12 12")
+        self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
+        
+        self.l_value = IntVar()
+    
+        ttk.Label(self.mainframe, text="Label Value: ").grid(column=1, row=1, sticky=W)
+        self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
+        self.progress.grid(column=5, row=3, sticky=W)
+        self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=200, mode="determinate")
+        self.pgb.grid(columnspan=4, row=3, padx=3, pady=3, sticky=N+S+E+W)
+        
+        self.label_value = ttk.Entry(self.mainframe, textvariable=self.l_value)
+        self.label_value.grid(column=2, row=1, sticky=W)
+
+        ttk.Button(self.mainframe, text="Apply", command=self.selected_item).grid(column=3, row=1, sticky=W)
+    
+    def execute(self):
+        if(not os.path.isdir("./export/")):
+            os.mkdir("./export/")
+
+        if(not os.path.isdir("./export/label/")):
+            os.mkdir("./export/label/")
+
+        for i in self.lb.curselection():
+            dir_path, file_name = os.path.split(self.lb.get(i))
+
+            src = cv2.imread(self.lb.get(i), 0)
+            ret,th1 = cv2.threshold(src,0.1,int(self.label_value.get()),cv2.THRESH_BINARY)
+                    
+            cv2.imwrite('./export/label/' + file_name, th1)
+
+            self.pgb['value'] += (100 / len(self.lb.curselection()))
+            self.progress_var.set(str(round(self.pgb['value'])) + "%")
+
+    def selected_item(self):
+        apply_thread = threading.Thread(target=self.execute)
+        apply_thread.start()
+
 class SaveWindow(Toplevel):
     def __init__(self, master = None, Img = None):
         super().__init__(master = master)
@@ -432,15 +480,6 @@ class MainWindow(threading.Thread):
         
         ttk.Button(root, text="Import", width=30, command=self.openDialog).grid(column=1, row=1, padx=5, pady=5, sticky=W)
         ttk.Button(root, text="Export", width=30, command=self.save).grid(column=3, row=1, padx=5, pady=5, sticky=W)
-       
-    def execute(self):
-        for i in self.lb.curselection():
-            dir_path, file_name = os.path.split(self.lb.get(i))
-
-            src = cv2.imread(self.lb.get(i), 0)
-            ret,th1 = cv2.threshold(src,0.1,1,cv2.THRESH_BINARY)
-                        
-            cv2.imwrite('./export/label/' + file_name, th1)
 
     def key(self, event):
         if event.keysym=='r':
@@ -465,13 +504,7 @@ class MainWindow(threading.Thread):
 
         if event.keysym=='t':
             if(len(self.lb.curselection())):
-                if(not os.path.isdir("./export/")):
-                    os.mkdir("./export/")
-
-                if(not os.path.isdir("./export/label/")):
-                    os.mkdir("./export/label/")
-                apply_thread = threading.Thread(target=self.execute)
-                apply_thread.start()            
+                LabelingWindow(root, self.lb)
             else:
                 messagebox.showinfo("Info", "No Selected Data")
 
