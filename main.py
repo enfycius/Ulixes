@@ -370,8 +370,10 @@ class LabelingWindow(Toplevel):
         self.mainframe.rowconfigure(0, weight=1)
         
         self.l_value = IntVar()
+        self.t_value = DoubleVar()
     
         ttk.Label(self.mainframe, text="Label Value: ").grid(column=1, row=1, sticky=W)
+        ttk.Label(self.mainframe, text="Threshold: ").grid(column=1, row=2, sticky=W)
         self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
         self.progress.grid(column=5, row=3, sticky=W)
         self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=200, mode="determinate")
@@ -379,8 +381,11 @@ class LabelingWindow(Toplevel):
         
         self.label_value = ttk.Entry(self.mainframe, textvariable=self.l_value)
         self.label_value.grid(column=2, row=1, sticky=W)
+        
+        self.threshold = ttk.Entry(self.mainframe, textvariable=self.t_value)
+        self.threshold.grid(column=2, row=2, sticky=W)
 
-        ttk.Button(self.mainframe, text="Apply", command=self.selected_item).grid(column=3, row=1, sticky=W)
+        ttk.Button(self.mainframe, text="Apply", command=self.selected_item).grid(columnspan=3, row=4, sticky=N+S+E+W)
     
     def execute(self):
         if(not os.path.isdir("./export/")):
@@ -393,7 +398,7 @@ class LabelingWindow(Toplevel):
             dir_path, file_name = os.path.split(self.lb.get(i))
 
             src = cv2.imread(self.lb.get(i), 0)
-            ret,th1 = cv2.threshold(src,0.1,int(self.label_value.get()),cv2.THRESH_BINARY)
+            ret,th1 = cv2.threshold(src,float(self.threshold.get()),int(self.label_value.get()),cv2.THRESH_BINARY)
                     
             cv2.imwrite('./export/label/' + file_name, th1)
 
