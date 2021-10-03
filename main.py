@@ -66,7 +66,7 @@ class RotationWindow(Toplevel):
         ttk.Button(self.mainframe, text="Rough Rotation", command=self.rough_rotation).grid(column=1, row=1, sticky=W)
     
     def specific_rotation(self):
-        self.Img = SpecificRotationWindow(self.master, self.lb)
+        self.specific = SpecificRotationWindow(self.master, self.lb)
 
     def rough_rotation(self):
         RoughRotationWindow(self.master, self.lb)
@@ -578,10 +578,10 @@ class MainWindow(threading.Thread):
         if(not os.path.isdir("./export")):
             os.mkdir("./export")
 
-        if(self.rotation == None):
+        if(self.rotation.specific.Img == None):
             messagebox.showinfo("Info", "No Export Data")
         else:  
-            SaveWindow(root, self.rotation.Img)
+            SaveWindow(root, self.rotation.specific.Img)
         
 if __name__ == "__main__":
     root = Tk()
