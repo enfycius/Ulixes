@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from PIL import Image, ImageTk
+from shutil import copyfile
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -470,6 +471,61 @@ class CheckWindow(Toplevel):
         for i, j in enumerate(ori.get(0, ori.size())):
             dir_path, file_name = os.path.split(j)
             self.lb.insert(i, file_name)
+
+class CopyWindow(Toplevel):
+    def __init__(self, master = None, lb = None):
+        super().__init__(master = master)
+        self.lb = lb
+        self.title("Copy & Paste")
+        self.progress_var = StringVar()
+        self.progress_var.set("0%")
+
+        self.mainframe = ttk.Frame(self, padding="3 3 12 12")
+        self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
+        
+        self.copy_count = IntVar()
+    
+        ttk.Label(self.mainframe, text="Copy Count: ").grid(column=1, row=1, sticky=W)
+        self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
+        self.progress.grid(column=5, row=2, sticky=W)
+        self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=200, mode="determinate")
+        self.pgb.grid(columnspan=4, row=2, padx=3, pady=3, sticky=N+S+E+W)
+        
+        self.copy_count_value = ttk.Entry(self.mainframe, textvariable=self.copy_count)
+        self.copy_count_value.grid(column=2, row=1, sticky=W)
+
+        ttk.Button(self.mainframe, text="Apply", command=self.selected_item).grid(columnspan=3, row=3, sticky=N+S+E+W)
+    
+    def execute(self):
+        if(not os.path.isdir("./export/")):
+            os.mkdir("./export/")
+
+        if(not os.path.isdir("./export/paste/")):
+            os.mkdir("./export/paste/")
+
+        print(self.lb.get(0))
+        dir_path, file_name = os.path.split(self.lb.get(0))
+
+        print(dir_path, file_name)
+
+        for i in self.lb.curselection():
+            for j in range(0, int(self.copy_count_value.get())):
+                dir_path, file_name = os.path.split(self.lb.get(i))
+                file_name, file_extension = os.path.splitext(file_name)
+
+                if os.path.isfile('./export/paste/'+file_name+str(j)+file_extension):
+                    os.remove('./export/paste/'+file_name+str(j)+file_extension)
+                    
+                copyfile(self.lb.get(i), './export/paste/'+file_name+str(j)+file_extension)
+
+            self.pgb['value'] += (100 / len(self.lb.curselection()))
+            self.progress_var.set(str(round(self.pgb['value'])) + "%")
+
+    def selected_item(self):
+        apply_thread = threading.Thread(target=self.execute)
+        apply_thread.start()
             
 class MainWindow(threading.Thread):
     def __init__(self, root):   
@@ -522,6 +578,12 @@ class MainWindow(threading.Thread):
                 CheckWindow(root, self.lb)
             else:
                 messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='x':
+            if(len(self.lb.curselection())):
+                CopyWindow(root, self.lb)
+            else:
+                messagebox.showinfo("Info", "No Selected Data")                
 
         if event.keysym=='p':
             if(len(self.lb.curselection())):            
