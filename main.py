@@ -9,6 +9,8 @@ import matplotlib.image as mpimg
 import tkinter.filedialog as fd
 import numpy as np
 import os
+import subprocess
+import platform
 import threading
 import cv2
 
@@ -579,6 +581,17 @@ class MainWindow(threading.Thread):
             else:
                 messagebox.showinfo("Info", "No Selected Data")
 
+        if event.keysym=='e':
+            if(len(self.lb.curselection())):
+                for i in self.lb.curselection():
+                    dir_path, file_name = os.path.split(self.lb.get(i))
+                    self.open_folder(dir_path)
+            else:
+                messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='l':
+            self.open_folder('./export/')
+
         if event.keysym=='x':
             if(len(self.lb.curselection())):
                 CopyWindow(root, self.lb)
@@ -610,6 +623,14 @@ class MainWindow(threading.Thread):
     
     def callback_right_button(self):
         print("Test")
+
+    def open_folder(self, path):
+        if platform.system() == "Windows":
+            os.startfile(path)
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", path])
+        else:
+            subprocess.Popen(["xdg-open", path])
 
     def bisect(self, list_of_items, item):    
         lo = 0
