@@ -533,9 +533,9 @@ class AutomaticCheckWindow(Toplevel):
 
         for y in range(0, h):
             for x in range(0, w):
-                if((image[y, x] != l) or (image[y, x] != 0)):
+                if((image[y, x] != l) and (image[y, x] != 0)):
                     return False
-
+        
         return True
 
     def execute(self):
@@ -550,9 +550,9 @@ class AutomaticCheckWindow(Toplevel):
         f = open("./checking_result.txt", "w")
 
         if(len(label_list) == len(ori_list)):
-            for i, j in zip(label_list, ori_list):
-                ori_img = cv2.imread(self.label_path_v.get() + '/' + i, cv2.IMREAD_GRAYSCALE)
-                label_img = cv2.imread(self.ori_path_v.get() + '/' + j, cv2.IMREAD_GRAYSCALE)
+            for i, j in zip(ori_list, label_list):
+                ori_img = cv2.imread(self.ori_path_v.get() + '/' + i, cv2.IMREAD_GRAYSCALE)
+                label_img = cv2.imread(self.label_path_v.get() + '/' + j, cv2.IMREAD_GRAYSCALE)
                 
                 if((ori_img.shape[0] == label_img.shape[0]) and (ori_img.shape[1] == label_img.shape[1])):
                     if(not self.check_pixel(self.l_value.get(), label_img)):
