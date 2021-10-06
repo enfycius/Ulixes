@@ -533,7 +533,7 @@ class AutomaticCheckWindow(Toplevel):
 
         for y in range(0, h):
             for x in range(0, w):
-                if((image[y, x] == l) or (image[y, x] == 0)):
+                if((image[y, x] != l) or (image[y, x] != 0)):
                     return False
 
         return True
