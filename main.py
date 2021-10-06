@@ -539,6 +539,7 @@ class AutomaticCheckWindow(Toplevel):
         return True
 
     def execute(self):
+        count = 0
         label_l = os.listdir(self.label_path_v.get())
         label_list = [label_f for label_f in label_l if label_f.endswith(".png")]
         label_list = natsort.natsorted(label_list, reverse=False)
@@ -557,6 +558,7 @@ class AutomaticCheckWindow(Toplevel):
                 if((ori_img.shape[0] == label_img.shape[0]) and (ori_img.shape[1] == label_img.shape[1])):
                     if(not self.check_pixel(self.l_value.get(), label_img)):
                         f.write('label: ' + i + '\n')
+                        count = count + 1
                 else:
                     f.write('Not Matching Image Shape\n')
                     f.write('-------------------------\n')
@@ -565,7 +567,7 @@ class AutomaticCheckWindow(Toplevel):
                 self.pgb['value'] += (100 / len(label_list))
                 self.progress_var.set(str(round(self.pgb['value'])) + "%")
 
-            messagebox.showinfo("Info", str(len(label_list)) + ' ' + "Checking Completed.")
+            messagebox.showinfo("Info", 'Result: ' + str(count) + ' of' + ' total ' + str(len(label_list)) + ' ; ' + "Checking Completed.")
                 
         else:
             messagebox.showinfo("Info", "Not Matching File Size")
