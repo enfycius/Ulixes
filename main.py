@@ -498,7 +498,6 @@ class AutomaticCheckWindow(Toplevel):
         
         ttk.Label(self.mainframe, textvariable=self.ori_path_v).grid(column=2, row=1, sticky=W)
         ttk.Label(self.mainframe, textvariable=self.label_path_v).grid(column=2, row=2, sticky=W)
-        ttk.Label(self.mainframe, textvariable=self.l_value).grid(column=2, row=3, sticky=W)
         
         self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
         self.progress.grid(column=5, row=4, sticky=W)
@@ -508,17 +507,25 @@ class AutomaticCheckWindow(Toplevel):
         self.label_value = ttk.Entry(self.mainframe, textvariable=self.l_value)
         self.label_value.grid(column=2, row=3, sticky=W)
 
-        ttk.Button(self.mainframe, text="Apply", command=self.ori_path).grid(column=3, row=1, sticky=N+S+E+W)
-        ttk.Button(self.mainframe, text="Apply", command=self.label_path).grid(column=3, row=2, sticky=N+S+E+W)
-        ttk.Button(self.mainframe, text="Apply", command=self.check).grid(columnspan=3, row=5, sticky=N+S+E+W)
+        ttk.Button(self.mainframe, text="Find", command=self.ori_path, state=NORMAL).grid(column=3, row=1, sticky=N+S+E+W)
+        ttk.Button(self.mainframe, text="Find", command=self.label_path, state=NORMAL).grid(column=3, row=2, sticky=N+S+E+W)
+        
+        self.check_Btn = ttk.Button(self.mainframe, text="Check", command=self.check, state=DISABLED)
+        self.check_Btn.grid(columnspan=4, row=5, sticky=N+S+E+W)
 
     def ori_path(self):
         self.ori_p = fd.askdirectory(parent=self, initialdir='/', title="Please select a directory")
         self.ori_path_v.set(self.ori_p)
 
+        if(self.label_path_v.get() != ''):
+            self.check_Btn['state'] = NORMAL
+
     def label_path(self):
         self.label_p = fd.askdirectory(parent=self, initialdir='/', title="Please select a directory")
         self.label_path_v.set(self.label_p)
+
+        if(self.ori_path_v.get() != ''):
+            self.check_Btn['state'] = NORMAL
 
     def check_pixel(self, l, image):
         h = image.shape[0]
@@ -560,7 +567,7 @@ class AutomaticCheckWindow(Toplevel):
                 self.pgb['value'] += (100 / len(label_list))
                 self.progress_var.set(str(round(self.pgb['value'])) + "%")
 
-            messagebox.showinfo("Info", "Checking Completed.")
+            messagebox.showinfo("Info", len(label_list) + ' ' + "Checking Completed.")
                 
         else:
             messagebox.showinfo("Info", "Not Matching File Size")
