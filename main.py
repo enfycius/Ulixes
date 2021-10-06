@@ -547,7 +547,7 @@ class AutomaticCheckWindow(Toplevel):
         ori_list = [ori_f for ori_f in ori_l if ori_f.endswith(".jpg")]
         ori_list = natsort.natsorted(ori_list, reverse=False)
 
-        f = open("./checking_result.txt", "a")
+        f = open("./checking_result.txt", "w")
 
         if(len(label_list) == len(ori_list)):
             for i, j in zip(label_list, ori_list):
@@ -555,8 +555,6 @@ class AutomaticCheckWindow(Toplevel):
                 label_img = cv2.imread(self.ori_path_v.get() + '/' + j, cv2.IMREAD_GRAYSCALE)
                 
                 if((ori_img.shape[0] == label_img.shape[0]) and (ori_img.shape[1] == label_img.shape[1])):
-                    if(not self.check_pixel(self.l_value.get(), ori_img)):
-                        f.write('ori: ' + j + '\n')
                     if(not self.check_pixel(self.l_value.get(), label_img)):
                         f.write('label: ' + i + '\n')
                 else:
@@ -567,7 +565,7 @@ class AutomaticCheckWindow(Toplevel):
                 self.pgb['value'] += (100 / len(label_list))
                 self.progress_var.set(str(round(self.pgb['value'])) + "%")
 
-            messagebox.showinfo("Info", len(label_list) + ' ' + "Checking Completed.")
+            messagebox.showinfo("Info", str(len(label_list)) + ' ' + "Checking Completed.")
                 
         else:
             messagebox.showinfo("Info", "Not Matching File Size")
