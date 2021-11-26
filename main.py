@@ -414,10 +414,11 @@ class LabelingWindow(Toplevel):
         apply_thread.start()
 
 class SaveWindow(Toplevel):
-    def __init__(self, master = None, Img = None):
+    def __init__(self, master = None, Img = None, ex_save = False):
         super().__init__(master = master)
         
         self.Img = Img
+        self.ex_save = ex_save
 
         self.title("Export")
         self.progress_var = StringVar()
@@ -438,7 +439,13 @@ class SaveWindow(Toplevel):
         
     def execute(self):
         for i, j in enumerate(self.Img):
-            j.save("./export/" + str(i) + ".png")
+            if(self.ex_save == True):
+                dir_path, file_name = os.path.split(j.filename)
+                file_name, file_extension = os.path.splitext(file_name)
+                j.save("./export/" + file_name + ".png")
+            else:
+                j.save("./export/" + str(i) + ".png")
+
             self.pgb['value'] += (100 / len(self.Img))
             self.progress_var.set(str(round(self.pgb['value'])) + "%")
 
@@ -680,6 +687,20 @@ class MainWindow(threading.Thread):
         if event.keysym=='r':
             if(len(self.lb.curselection())):
                 self.rotation = RotationWindow(root, self.lb)
+            else:
+                messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='m':
+            img = []
+
+            if(not os.path.isdir("./export")):
+                os.mkdir("./export")
+
+            if(len(self.lb.curselection())):
+                for i in self.lb.curselection():
+                    img.append(Image.open(self.lb.get(i)))
+                
+                SaveWindow(root, img, True)
             else:
                 messagebox.showinfo("Info", "No Selected Data")
 
