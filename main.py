@@ -763,14 +763,14 @@ class MainWindow(threading.Thread):
                         src = cv2.imread(self.lb.get(i), 0)
                         ret,th1 = cv2.threshold(src,0.1,255,cv2.THRESH_BINARY)
                         
-                        cv2.imshow(file_name, th1)
+                        cv2.imshow(file_name, cv2.resize(th1, (500, 500)))
                         cv2.moveWindow(file_name, 900, 0)
                         cv2.waitKey(0)
                         cv2.destroyAllWindows()
                     else:
                         src = cv2.imread(self.lb.get(i))
 
-                        cv2.imshow(file_name, src)
+                        cv2.imshow(file_name, cv2.resize(src, (500, 500)))
                         cv2.moveWindow(file_name, 300, 0)
                         cv2.waitKey(0)
                         cv2.destroyAllWindows()
