@@ -776,6 +776,28 @@ class MainWindow(threading.Thread):
                         cv2.destroyAllWindows()
             else:
                 messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='v':
+            if(len(self.lb.curselection())):            
+                for i in self.lb.curselection():
+                    dir_path, file_name = os.path.split(self.lb.get(i))
+
+                    src = Image.open(self.lb.get(i))
+                    img = src.convert("RGBA")
+
+                    width = img.size[0]
+                    height = img.size[1]
+
+                    for x in range(0, width):
+                        for y in range(0, height):
+                            data = img.getpixel((x, y))
+
+                            if(data[0] == 255 and data[1] == 255 and data[2] == 255):
+                                img.putpixel((x, y), (255, 255, 255, 0))
+                    
+                    img.save(self.lb.get(i), "PNG")
+            else:
+                messagebox.showinfo("Info", "No Selected Data")
     
     def callback_right_button(self):
         print("Test")
