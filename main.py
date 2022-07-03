@@ -798,6 +798,24 @@ class MainWindow(threading.Thread):
                     img.save(self.lb.get(i), "PNG")
             else:
                 messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='h':
+            if(len(self.lb.curselection())):      
+                src = []
+
+                for i in self.lb.curselection():
+                    dir_path, file_name = os.path.split(self.lb.get(i))
+
+                    src.append(Image.open(self.lb.get(i)))
+                    
+                img = src[0].copy()
+
+                for im in src:
+                    img = Image.alpha_composite(img, im)
+                
+                img.save(dir_path + '/concat_' + file_name, "PNG")
+            else:
+                messagebox.showinfo("Info", "No Selected Data")
     
     def callback_right_button(self):
         print("Test")
