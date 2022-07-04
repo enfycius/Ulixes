@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from shutil import copyfile
+import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -449,6 +450,55 @@ class SaveWindow(Toplevel):
             self.pgb['value'] += (100 / len(self.Img))
             self.progress_var.set(str(round(self.pgb['value'])) + "%")
 
+class MultiWindow(Toplevel):
+    def __init__(self, master = None, lb = None):
+        super().__init__(master = master)
+        self.lb = lb
+        self.title("When Working with Multi Labels.")
+        self.progress_var = StringVar()
+        self.progress_var.set("0%")
+
+        self.mainframe = ttk.Frame(self, padding="3 3 12 12")
+        self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.mainframe.columnconfigure(0, weight=1)
+        self.mainframe.rowconfigure(0, weight=1)
+        
+        self.l_value = IntVar()
+    
+        ttk.Label(self.mainframe, text="Label Value: ").grid(column=1, row=1, sticky=W)
+        self.progress = ttk.Label(self.mainframe, textvariable = self.progress_var)
+        self.progress.grid(column=5, row=2, sticky=W)
+        self.pgb = ttk.Progressbar(self.mainframe, orient=HORIZONTAL, length=200, mode="determinate")
+        self.pgb.grid(columnspan=4, row=2, padx=3, pady=3, sticky=N+S+E+W)
+        
+        self.label_value = ttk.Entry(self.mainframe, textvariable=self.l_value)
+        self.label_value.grid(column=2, row=1, sticky=W)
+        
+        ttk.Button(self.mainframe, text="Apply", command=self.selected_item).grid(columnspan=3, row=3, sticky=N+S+E+W)
+    
+    def execute(self):
+        if(not os.path.isdir("./export/")):
+            os.mkdir("./export/")
+
+        if(not os.path.isdir("./export/label/")):
+            os.mkdir("./export/label/")
+
+        for i in self.lb.curselection():
+            dir_path, file_name = os.path.split(self.lb.get(i))
+
+            src = cv2.imread(self.lb.get(i), 0)
+            ret,th1 = cv2.threshold(src,254.9,int(self.label_value.get()),cv2.THRESH_BINARY_INV)
+            ret,th1 = cv2.threshold(th1,0,int(self.label_value.get()),cv2.THRESH_BINARY)
+                
+            cv2.imwrite('./export/label/' + file_name, th1)
+
+            self.pgb['value'] += (100 / len(self.lb.curselection()))
+            self.progress_var.set(str(round(self.pgb['value'])) + "%")
+
+    def selected_item(self):
+        apply_thread = threading.Thread(target=self.execute)
+        apply_thread.start()
+
 class CheckWindow(Toplevel):
     def __init__(self, master = None, lb = None):
         super().__init__(master = master)
@@ -769,7 +819,6 @@ class MainWindow(threading.Thread):
                         cv2.destroyAllWindows()
                     else:
                         src = cv2.imread(self.lb.get(i))
-
                         cv2.imshow(file_name, cv2.resize(src, (500, 500)))
                         cv2.moveWindow(file_name, 300, 0)
                         cv2.waitKey(0)
@@ -805,15 +854,29 @@ class MainWindow(threading.Thread):
 
                 for i in self.lb.curselection():
                     dir_path, file_name = os.path.split(self.lb.get(i))
+                    src.append(cv2.imread(self.lb.get(i), 0))
 
-                    src.append(Image.open(self.lb.get(i)))
-                    
-                img = src[0].copy()
+                img = src[0]
+                img_p = img[img != 0][0]
 
-                for im in src:
-                    img = Image.alpha_composite(img, im)
+                for i in range(1, len(src)):
+                    src_p = src[i][src[i] != 0][0]
+
+                    img = cv2.addWeighted(img,1.0,src[i],255,0)
+            
+                    img[img == 255] = src_p
+                    img[img == img_p] = img_p
+
+                df = pd.DataFrame(img)
+                df.to_csv("./test.csv", index=False)    
                 
-                img.save(dir_path + '/concat_' + file_name, "PNG")
+                cv2.imwrite(dir_path + '/concat_' + file_name, img)
+            else:
+                messagebox.showinfo("Info", "No Selected Data")
+
+        if event.keysym=='w':
+            if(len(self.lb.curselection())):
+                MultiWindow(root, self.lb)
             else:
                 messagebox.showinfo("Info", "No Selected Data")
     
